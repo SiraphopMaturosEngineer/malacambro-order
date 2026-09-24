@@ -1,4 +1,4 @@
-# หม่าล่าแคมโบร๋ — Project Notes
+[CLAUDE.md](https://github.com/user-attachments/files/32613037/CLAUDE.md)# หม่าล่าแคมโบร๋ — Project Notes
 
 QR-code ordering + kitchen display system for the mala buffet shop "หม่าล่าแคมโบร๋".
 Stack: Next.js (App Router, JavaScript) + Supabase + Vercel.
@@ -55,11 +55,31 @@ Set these in `.env.local` (local) and in the Vercel project settings (production
 
 See `.env.local.example`.
 
-## Current pages (scaffold only, for deploy verification)
+## Realtime setup required for the kitchen screen
+
+`app/kitchen/KitchenClient.js` subscribes to `postgres_changes` on the `orders`
+table via `supabase.channel(...)`. This only works if Realtime replication is
+turned on for that table in Supabase:
+
+1. Open the Supabase Dashboard → your project → **Database** → **Replication**.
+2. Find the `supabase_realtime` publication and toggle it **on** for the
+   `orders` table (older dashboard versions: **Database → Publications** →
+   edit `supabase_realtime` → check `orders`).
+3. No restart needed — new inserts/updates on `orders` start broadcasting
+   immediately once the toggle is on.
+
+Without this step, the kitchen screen still works on page load (it fetches
+existing orders normally), but new orders won't appear until the page is
+manually refreshed.
+
+## Current pages
 
 - `/` — shows shop name and links to the pages below
-- `/generate-qr` — placeholder, to be built next
-- `/kitchen` — placeholder, to be built next
+- `/generate-qr` — staff opens a table and gets a QR code for it
+- `/order/[sessionId]` — customer ordering page (Server Component page.js +
+  OrderClient.js, following the params-as-Promise pattern above)
+- `/kitchen` — kitchen display (Server Component page.js + KitchenClient.js),
+  live order queue via Supabase Realtime — see the Realtime setup note above
 
 ## Getting started
 
